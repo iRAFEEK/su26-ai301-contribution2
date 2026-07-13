@@ -44,7 +44,7 @@ Only the raw markdown code block is shown. There is no toggle. Users must copy t
 
 1. Forked the repo on GitHub and cloned my fork: `git clone https://github.com/iRAFEEK/commitpulse.git`
 2. Installed dependencies: `npm install`
-3. Created `.env.local` — had to generate `AUTH_SECRET` (`openssl rand -base64 32`) and `ENCRYPTION_KEY`, and add a GitHub PAT as `GITHUB_TOKEN`. Without these, the dev server threw a 500 error on load.
+3. Created `.env.local` — had to generate `AUTH_SECRET` and `ENCRYPTION_KEY`, and add a GitHub PAT as `GITHUB_TOKEN`. Without these, the dev server threw a 500 error on load.
 4. Started the dev server: `npm run dev`
 
 ### Steps to Reproduce
@@ -57,7 +57,7 @@ Only the raw markdown code block is shown. There is no toggle. Users must copy t
 ### Reproduction Evidence
 
 - **Commit showing reproduction:** [iRAFEEK/commitpulse/tree/feat/markdown-preview-toggle](https://github.com/iRAFEEK/commitpulse/tree/feat/markdown-preview-toggle)
-- **Screenshots/logs:** Confirmed on live site at commitpulse.vercel.app/customize — Markdown tab shows raw code only
+- **Screenshots/logs:** Confirmed on live site at commitpulse.vercel.app/customize — Markdown tab shows raw code only, no toggle
 - **My findings:** The issue is purely a missing UI feature in `ExportPanel.tsx`. No backend changes required. The markdown snippet already contains the image URL, so it can be extracted and rendered client-side.
 
 ---
@@ -78,7 +78,7 @@ Using UMPIRE framework (adapted):
 
 **Understand:** The markdown snippet is a string like `![badge](https://commitpulse.vercel.app/api/streak?user=iRAFEEK&theme=dark)`. The URL inside the parentheses is the badge image URL.
 
-**Match:** The existing format tab toggle pattern in `ExportPanel.tsx` (using `format === 'markdown'` conditionally) was used as a model. The emerald color scheme and glassmorphism styling used throughout the component were reused for the toggle buttons.
+**Match:** The existing format tab toggle pattern in `ExportPanel.tsx` was used as a model. The emerald color scheme and glassmorphism styling used throughout the component were reused for the toggle buttons.
 
 **Plan:**
 1. Add `const [viewMode, setViewMode] = useState<'raw' | 'rendered'>('raw')` inside the component
@@ -88,9 +88,9 @@ Using UMPIRE framework (adapted):
 
 **Implement:** [feat/markdown-preview-toggle branch](https://github.com/iRAFEEK/commitpulse/tree/feat/markdown-preview-toggle) — 65 additions, 4 deletions in `ExportPanel.tsx`
 
-**Review:** Matched existing Tailwind class patterns, emerald active-state styling, and glassmorphism border/backdrop conventions already in the file. Added `aria-pressed` for accessibility.
+**Review:** Matched existing Tailwind class patterns, emerald active-state styling, and glassmorphism border/backdrop conventions. Added `aria-pressed` for accessibility.
 
-**Evaluate:** Tested locally — toggle appears only on the Markdown tab, Preview renders the badge image, Raw shows the code, switching tabs resets state to Raw, and the fallback message shows when no username is entered.
+**Evaluate:** Tested locally — toggle appears only on Markdown tab, Preview renders the badge image, Raw shows the code, switching tabs resets to Raw.
 
 ---
 
@@ -98,7 +98,7 @@ Using UMPIRE framework (adapted):
 
 ### Unit Tests
 
-- [x] No automated unit test harness exists for this UI component in the repo — verification was manual and behavioral, consistent with the project's testing approach
+- [x] No automated unit test harness exists for this UI component — verification was manual and behavioral, consistent with the project's approach
 
 ### Integration Tests
 
@@ -116,19 +116,19 @@ Using UMPIRE framework (adapted):
 
 ## Implementation Notes
 
-### Week 1 (Phase I–II) Progress
+### Week 5 Progress (Phase I — Issue Selection & Phase II — Reproduce & Plan)
 
-Selected issue #7813 on JhaSourav07/commitpulse, forked the repo, and set up the local dev environment. The main challenge was the missing `.env.local` — the app threw a 500 error until I generated the required secrets and added a GitHub PAT. Reproduced the issue on both localhost and the live site, confirming the Markdown tab has no preview toggle.
+Selected issue #7813 on JhaSourav07/commitpulse and forked the repo. Set up the local dev environment — the main challenge was the missing `.env.local`: the app threw a 500 error until I generated the required secrets (`AUTH_SECRET`, `ENCRYPTION_KEY`) and added a GitHub PAT as `GITHUB_TOKEN`. Reproduced the issue on both localhost and the live site (commitpulse.vercel.app), confirming the Markdown tab shows only raw code with no toggle. Analyzed `ExportPanel.tsx` and planned the solution: add `viewMode` state, a pill-style toggle, and conditional rendering based on whether the URL can be extracted from the snippet string.
 
-### Week 2 (Phase III–IV) Progress
+### Week 6 Progress (Phase III — Build & Phase IV — Submit)
 
-Implemented the feature in `ExportPanel.tsx`: added `viewMode` state, the pill-style toggle, and conditional rendering logic. Tested end-to-end locally. Opened PR [#8049](https://github.com/JhaSourav07/commitpulse/pull/8049) against `JhaSourav07/commitpulse:main`. The repo's GitHub Actions bot auto-closed it because the issue was not pre-assigned to me — the bot's `/claim` command is restricted to the issue author only. I left a comment on the issue requesting maintainer assignment, and will reopen the PR once assigned.
+Implemented the feature in `ExportPanel.tsx`: added `viewMode` useState, the pill-style Raw/Preview toggle (markdown tab only), and conditional rendering logic — `<img>` in Preview mode, `<code>` in Raw mode, with a fallback message if no username is set. Tested end-to-end locally; all scenarios passed. Opened PR [#8049](https://github.com/JhaSourav07/commitpulse/pull/8049) against `JhaSourav07/commitpulse:main`. The repo's GitHub Actions bot auto-closed it because the issue was not pre-assigned — the bot's `/claim` command is restricted to the issue author only. Left a comment on the issue requesting maintainer assignment; will reopen the PR once assigned.
 
 ### Code Changes
 
 - **Files modified:** `app/customize/components/ExportPanel.tsx`
 - **Key commits:** [feat/markdown-preview-toggle](https://github.com/iRAFEEK/commitpulse/tree/feat/markdown-preview-toggle) — 65 additions, 4 deletions
-- **Approach decisions:** Used regex extraction of the URL from the markdown string rather than storing the URL separately, keeping the change minimal and non-breaking. Reset to Raw on tab switch to avoid showing a stale preview.
+- **Approach decisions:** Used regex extraction of the URL from the markdown string to keep the change minimal and non-breaking. Reset to Raw on tab switch to avoid stale previews.
 
 ---
 
@@ -136,10 +136,10 @@ Implemented the feature in `ExportPanel.tsx`: added `viewMode` state, the pill-s
 
 **PR Link:** [JhaSourav07/commitpulse #8049](https://github.com/JhaSourav07/commitpulse/pull/8049)
 
-**PR Description:** Adds a Raw/Preview toggle to the Markdown export tab. Includes a note clarifying the relationship to the existing Live Preview widget — the outputs are visually similar, but this toggle is scoped to the Export Panel workflow and confirms the specific snippet URL renders as a plain image. Checklist and Pillar section filled out per CONTRIBUTING.md.
+**PR Description:** Adds a Raw/Preview toggle to the Markdown export tab. Includes a note clarifying the relationship to the existing Live Preview widget — the outputs are visually similar, but this toggle is scoped to the Export Panel and confirms the snippet URL renders as a plain image. Checklist and Pillar filled out per CONTRIBUTING.md.
 
 **Maintainer Feedback:**
-- 2026-07-13: GitHub Actions bot — PR auto-closed because issue #7813 was not assigned to contributor before opening. → Left a comment on the issue requesting assignment; will reopen once assigned.
+- 2026-07-13: GitHub Actions bot — PR auto-closed because issue #7813 was not assigned before opening. → Left comment on issue requesting assignment; will reopen once assigned.
 
 **Status:** PR closed by bot; awaiting maintainer assignment on issue #7813.
 
@@ -149,15 +149,15 @@ Implemented the feature in `ExportPanel.tsx`: added `viewMode` state, the pill-s
 
 ### Technical Skills Gained
 
-Set up a full Next.js app locally from scratch, including generating secrets and configuring environment variables. Read and modified a 400+ line React component without breaking unrelated functionality. Learned how GitHub Actions bots enforce contribution workflows in large open source projects, and what pre-assignment requirements exist before a PR can be accepted.
+Set up a full Next.js app locally from scratch, including generating secrets and configuring environment variables. Read and modified a 400+ line React component without breaking unrelated functionality. Learned how GitHub Actions bots enforce contribution workflows and what pre-assignment requirements exist before a PR can be accepted.
 
 ### Challenges Overcome
 
-The dev server failed to start due to missing environment variables — resolved by generating `AUTH_SECRET`, `ENCRYPTION_KEY`, and adding a GitHub PAT. The PR was auto-closed by the bot because I hadn't been pre-assigned to the issue — a project-specific rule I wasn't aware of before submitting.
+Dev server failed to start due to missing environment variables — resolved by generating required secrets and adding a GitHub PAT. PR was auto-closed by the bot because I hadn't been pre-assigned to the issue — a project-specific rule I wasn't aware of going in.
 
 ### What I'd Do Differently Next Time
 
-Read the repo's `CONTRIBUTING.md` and check for any bot workflows before opening a PR, so I know whether pre-assignment is required. In this project the bot enforces assignment strictly — submitting a PR without prior assignment results in an automatic close regardless of code quality.
+Read the repo's `CONTRIBUTING.md` and check for bot workflows before opening a PR. In this project the bot enforces pre-assignment strictly — submitting without it results in an automatic close regardless of code quality.
 
 ---
 
